@@ -8,29 +8,33 @@ datasource db {
 }
 
 model School {
-  id           String    @id @default(uuid())
-  codigoAmie   String    @unique @map("codigo_amie")
-  nombre       String
-  totalAlumnos Int       @map("total_alumnos")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id                  String    @id @default(uuid())
+  codigoAmie          String    @unique @map("codigo_amie")
+  nombre              String
+  totalAlumnos        Int       @map("total_alumnos")
+  alumnosCapacitados  Int       @default(0) @map("alumnos_capacitados")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
   
-  students     Student[]
+  students            Student[]
 
   @@map("schools")
 }
 
 model Student {
-  id        String   @id @default(uuid())
-  cedula    String   @unique
-  nombre    String
-  apellido  String
-  edad      Int
-  schoolId  String   @map("school_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                String   @id @default(uuid())
+  cedula            String   @unique
+  nombre            String
+  apellido          String
+  edad              Int
+  genero            String
+  schoolId          String   @map("school_id")
+  completedTraining Boolean  @default(false) @map("completed_training")
+  trainingCount     Int      @default(0) @map("training_count")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
   
-  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school            School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@map("students")
 }

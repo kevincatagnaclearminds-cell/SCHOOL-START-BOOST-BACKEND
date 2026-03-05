@@ -3,7 +3,7 @@ import { prisma } from '../utils/prisma';
 
 export const createStudent = async (req: Request, res: Response) => {
   try {
-    const { cedula, nombre, apellido, edad, schoolId } = req.body;
+    const { cedula, nombre, apellido, edad, genero, schoolId } = req.body;
 
     // Validar que la escuela exista
     const school = await prisma.school.findUnique({
@@ -13,19 +13,36 @@ export const createStudent = async (req: Request, res: Response) => {
     if (!school) {
       return res.status(404).json({
         success: false,
-        message: 'Escuela no encontrada'
+        error: 'Escuela no encontrada'
       });
     }
 
     // Validar que no exista la cédula
     const existing = await prisma.student.findUnique({
-      where: { cedula }
+      where: { cedula },
+      include: {
+        school: {
+          select: {
+            id: true,
+            nombre: true
+          }
+        }
+      }
     });
 
     if (existing) {
       return res.status(409).json({
         success: false,
-        message: 'Esta cédula ya está registrada'
+        error: 'Esta cédula ya está registrada',
+        existingStudent: {
+          id: existing.id,
+          cedula: existing.cedula,
+          nombre: existing.nombre,
+          apellido: existing.apellido,
+          edad: existing.edad,
+          genero: existing.genero,
+          schoolId: existing.schoolId
+        }
       });
     }
 
@@ -36,7 +53,16 @@ export const createStudent = async (req: Request, res: Response) => {
         nombre,
         apellido,
         edad,
+        genero,
         schoolId
+      },
+      include: {
+        school: {
+          select: {
+            id: true,
+            nombre: true
+          }
+        }
       }
     });
 
@@ -48,7 +74,7 @@ export const createStudent = async (req: Request, res: Response) => {
     console.error('Error creating student:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al crear el estudiante'
+      error: 'Error al crear el estudiante'
     });
   }
 };
@@ -80,7 +106,7 @@ export const getAllStudents = async (req: Request, res: Response) => {
     console.error('Error fetching students:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al obtener los estudiantes'
+      error: 'Error al obtener los estudiantes'
     });
   }
 };
@@ -94,6 +120,7 @@ export const getStudentByCedula = async (req: Request, res: Response) => {
       include: {
         school: {
           select: {
+            id: true,
             nombre: true
           }
         }
@@ -103,7 +130,7 @@ export const getStudentByCedula = async (req: Request, res: Response) => {
     if (!student) {
       return res.status(404).json({
         success: false,
-        message: 'Estudiante no encontrado'
+        error: 'Estudiante no encontrado'
       });
     }
 
@@ -115,7 +142,66 @@ export const getStudentByCedula = async (req: Request, res: Response) => {
     console.error('Error fetching student:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al obtener el estudiante'
+      error: 'Error al obtener el estudiante'
+    });
+  }
+};
+
+export const completeTraining = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { score, profile } = req.body;
+
+    // Buscar el estudiante
+    const student = await prisma.student.findUnique({
+      where: { id },
+      include: { school: true }
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: 'Estudiante no encontrado'
+      });
+    }
+
+    const isFirstTime = !student.completedTraining;
+
+    // Actualizar estudiante
+    const updatedStudent = await prisma.student.update({
+      where: { id },
+      data: {
+        completedTraining: true,
+        trainingCount: student.trainingCount + 1
+      }
+    });
+
+    // Solo sumar a la escuela si es la primera vez
+    if (isFirstTime) {
+      await prisma.school.update({
+        where: { id: student.schoolId },
+        data: {
+          alumnosCapacitados: {
+            increment: 1
+          }
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        isFirstTime,
+        trainingCount: updatedStudent.trainingCount,
+        score,
+        profile
+      }
+    });
+  } catch (error) {
+    console.error('Error completing training:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al completar la capacitación'
     });
   }
 };
