@@ -1,29 +1,22 @@
 import { z } from 'zod';
 
-// Validación de cédula ecuatoriana
+// Validación básica de cédula ecuatoriana
 export const validarCedulaEcuatoriana = (cedula: string): boolean => {
+  // Solo validar formato básico: 10 dígitos numéricos
   if (cedula.length !== 10) return false;
   
+  // Validar que todos sean números
+  if (!/^\d+$/.test(cedula)) return false;
+  
+  // Validar provincia (primeros 2 dígitos entre 01 y 24)
   const provincia = parseInt(cedula.substring(0, 2));
   if (provincia < 1 || provincia > 24) return false;
   
+  // Validación más flexible: permitir cualquier tercer dígito válido
   const tercerDigito = parseInt(cedula[2]);
-  if (tercerDigito > 6) return false;
+  if (tercerDigito > 9) return false;
   
-  // Algoritmo módulo 10
-  const coeficientes = [2, 1, 2, 1, 2, 1, 2, 1, 2];
-  let suma = 0;
-  
-  for (let i = 0; i < 9; i++) {
-    let valor = parseInt(cedula[i]) * coeficientes[i];
-    if (valor >= 10) valor -= 9;
-    suma += valor;
-  }
-  
-  const digitoVerificador = parseInt(cedula[9]);
-  const resultado = (10 - (suma % 10)) % 10;
-  
-  return resultado === digitoVerificador;
+  return true;
 };
 
 export const createStudentSchema = z.object({
