@@ -3,18 +3,20 @@ import { prisma } from '../utils/prisma';
 
 export const createStudent = async (req: Request, res: Response) => {
   try {
-    const { cedula, nombre, apellido, edad, genero, schoolId } = req.body;
+    const { cedula, nombre, apellido, edad, genero, schoolId, otraEscuela } = req.body;
 
-    // Validar que la escuela exista
-    const school = await prisma.school.findUnique({
-      where: { id: schoolId }
-    });
-
-    if (!school) {
-      return res.status(404).json({
-        success: false,
-        error: 'Escuela no encontrada'
+    // Si schoolId no es "otra", validar que la escuela exista
+    if (schoolId !== 'otra') {
+      const school = await prisma.school.findUnique({
+        where: { id: schoolId }
       });
+
+      if (!school) {
+        return res.status(404).json({
+          success: false,
+          error: 'Escuela no encontrada'
+        });
+      }
     }
 
     // Validar que no exista la cédula
@@ -41,21 +43,29 @@ export const createStudent = async (req: Request, res: Response) => {
           apellido: existing.apellido,
           edad: existing.edad,
           genero: existing.genero,
-          schoolId: existing.schoolId
+          schoolId: existing.schoolId,
+          otraEscuela: existing.otraEscuela
         }
       });
     }
 
     // Crear el estudiante
+    const studentData: any = {
+      cedula,
+      nombre,
+      apellido,
+      edad,
+      genero,
+      otraEscuela: schoolId === 'otra' ? otraEscuela : null
+    };
+
+    // Solo agregar schoolId si no es "otra"
+    if (schoolId !== 'otra') {
+      studentData.schoolId = schoolId;
+    }
+
     const student = await prisma.student.create({
-      data: {
-        cedula,
-        nombre,
-        apellido,
-        edad,
-        genero,
-        schoolId
-      },
+      data: studentData,
       include: {
         school: {
           select: {
@@ -176,8 +186,8 @@ export const completeTraining = async (req: Request, res: Response) => {
       }
     });
 
-    // Solo sumar a la escuela si es la primera vez
-    if (isFirstTime) {
+    // Solo sumar a la escuela si es la primera vez Y tiene una escuela asociada
+    if (isFirstTime && student.schoolId) {
       await prisma.school.update({
         where: { id: student.schoolId },
         data: {

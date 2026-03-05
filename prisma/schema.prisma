@@ -28,13 +28,14 @@ model Student {
   apellido          String
   edad              Int
   genero            String
-  schoolId          String   @map("school_id")
+  schoolId          String?  @map("school_id")
+  otraEscuela       String?  @map("otra_escuela")
   completedTraining Boolean  @default(false) @map("completed_training")
   trainingCount     Int      @default(0) @map("training_count")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
   
-  school            School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school            School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@map("students")
 }

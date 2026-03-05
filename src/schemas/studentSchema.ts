@@ -37,8 +37,21 @@ export const createStudentSchema = z.object({
   genero: z.enum(['masculino', 'femenino'], {
     errorMap: () => ({ message: "Género debe ser 'masculino' o 'femenino'" })
   }),
-  schoolId: z.string().uuid('School ID debe ser un UUID válido')
-});
+  schoolId: z.string().min(1, 'School ID es obligatorio'),
+  otraEscuela: z.string().optional()
+}).refine(
+  (data) => {
+    // Si schoolId es "otra", otraEscuela debe tener valor
+    if (data.schoolId === 'otra') {
+      return data.otraEscuela && data.otraEscuela.trim().length > 0;
+    }
+    return true;
+  },
+  {
+    message: 'Debes proporcionar el nombre de la escuela',
+    path: ['otraEscuela']
+  }
+);
 
 export const completeTrainingSchema = z.object({
   score: z.number().int().min(0).max(10),

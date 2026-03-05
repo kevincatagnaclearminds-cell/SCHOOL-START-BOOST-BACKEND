@@ -6,7 +6,7 @@
 
 ## 🎯 RESUMEN
 
-Se implementaron todos los requerimientos solicitados por el frontend para el proyecto CAPTE Pastaza - Reto 200.
+Se implementaron todos los requerimientos solicitados por el frontend para el proyecto CAPTE Pastaza - Reto 200, incluyendo el soporte para escuelas personalizadas.
 
 ---
 
@@ -16,6 +16,8 @@ Se implementaron todos los requerimientos solicitados por el frontend para el pr
 
 #### Schema Student
 - ✅ Campo `genero` agregado (String, obligatorio)
+- ✅ Campo `otraEscuela` agregado (String, opcional) - **NUEVO**
+- ✅ Campo `schoolId` ahora es opcional (permite null) - **NUEVO**
 - ✅ Campo `completedTraining` agregado (Boolean, default: false)
 - ✅ Campo `trainingCount` agregado (Int, default: 0)
 - ✅ Constraint UNIQUE en campo `cedula` (ya existía)
@@ -37,6 +39,11 @@ Se implementaron todos los requerimientos solicitados por el frontend para el pr
 - ✅ Campo obligatorio
 - ✅ Error 400 si el valor no es válido
 
+#### Validación de Escuela Personalizada - **NUEVO**
+- ✅ Si `schoolId = "otra"`, el campo `otraEscuela` es obligatorio
+- ✅ Si `schoolId` es un UUID, valida que la escuela exista
+- ✅ Permite que estudiantes sin escuela en la lista se registren
+
 #### Validación de Cédulas Duplicadas
 - ✅ Verifica si la cédula ya existe antes de crear
 - ✅ Retorna error 409 (Conflict) con datos del estudiante existente
@@ -45,7 +52,7 @@ Se implementaron todos los requerimientos solicitados por el frontend para el pr
 
 #### POST /api/students
 ```json
-Request:
+Request (con escuela de la lista):
 {
   "cedula": "1234567890",
   "nombre": "Juan",
@@ -53,6 +60,17 @@ Request:
   "edad": 15,
   "genero": "masculino",
   "schoolId": "uuid-escuela"
+}
+
+Request (con escuela personalizada):
+{
+  "cedula": "1234567890",
+  "nombre": "Kevin",
+  "apellido": "Catagña",
+  "edad": 22,
+  "genero": "femenino",
+  "schoolId": "otra",
+  "otraEscuela": "Carlos Larco Hidalgo"
 }
 
 Response 201:
@@ -66,6 +84,7 @@ Response 201:
     "edad": 15,
     "genero": "masculino",
     "schoolId": "uuid-escuela",
+    "otraEscuela": null,
     "completedTraining": false,
     "trainingCount": 0,
     "createdAt": "2026-03-05T...",
@@ -88,7 +107,8 @@ Response 409 (Duplicado):
     "apellido": "Pérez",
     "edad": 15,
     "genero": "masculino",
-    "schoolId": "uuid-escuela"
+    "schoolId": "uuid-escuela",
+    "otraEscuela": null
   }
 }
 
@@ -100,6 +120,18 @@ Response 400 (Cédula inválida):
     {
       "message": "Cédula ecuatoriana inválida",
       ...
+    }
+  ]
+}
+
+Response 400 (Falta otraEscuela):
+{
+  "success": false,
+  "error": "Datos inválidos",
+  "details": [
+    {
+      "message": "Debes proporcionar el nombre de la escuela",
+      "path": ["otraEscuela"]
     }
   ]
 }
@@ -194,10 +226,13 @@ Response 200:
 ### 4. Migraciones Aplicadas
 
 ✅ Migración `20260305192329_add_gender_and_training_fields` aplicada exitosamente
+✅ Migración `20260305194134_add_otra_escuela_field` aplicada exitosamente - **NUEVO**
 
 **Cambios en la base de datos:**
 - Tabla `students`:
   - Campo `genero` (TEXT NOT NULL)
+  - Campo `otra_escuela` (TEXT NULL) - **NUEVO**
+  - Campo `school_id` ahora permite NULL - **NUEVO**
   - Campo `completed_training` (BOOLEAN NOT NULL DEFAULT false)
   - Campo `training_count` (INTEGER NOT NULL DEFAULT 0)
   
@@ -329,7 +364,36 @@ POST /api/students/uuid-estudiante/complete-training
 # Esperado: isFirstTime = false, escuela sin cambios
 ```
 
-### Test 9: Ranking actualizado
+### Test 9: Registro con escuela personalizada - **NUEVO**
+```bash
+POST /api/students
+{
+  "cedula": "1234567893",
+  "nombre": "Kevin",
+  "apellido": "Catagña",
+  "edad": 22,
+  "genero": "femenino",
+  "schoolId": "otra",
+  "otraEscuela": "Carlos Larco Hidalgo"
+}
+# Esperado: 201 Created con otraEscuela guardada
+```
+
+### Test 10: Registro con schoolId="otra" sin otraEscuela - **NUEVO**
+```bash
+POST /api/students
+{
+  "cedula": "1234567894",
+  "nombre": "María",
+  "apellido": "López",
+  "edad": 18,
+  "genero": "femenino",
+  "schoolId": "otra"
+}
+# Esperado: 400 Bad Request - "Debes proporcionar el nombre de la escuela"
+```
+
+### Test 11: Ranking actualizado
 ```bash
 GET /api/ranking
 # Esperado: Lista ordenada por alumnosCapacitados
