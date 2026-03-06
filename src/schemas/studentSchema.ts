@@ -24,11 +24,16 @@ export const createStudentSchema = z.object({
     .length(10, 'Cédula debe tener exactamente 10 dígitos')
     .regex(/^\d+$/, 'Cédula debe contener solo números')
     .refine(validarCedulaEcuatoriana, 'Cédula ecuatoriana inválida'),
-  nombre: z.string().min(1, 'Nombre es obligatorio').max(100, 'Nombre debe tener máximo 100 caracteres'),
-  apellido: z.string().min(1, 'Apellido es obligatorio').max(100, 'Apellido debe tener máximo 100 caracteres'),
-  edad: z.number().int().min(5, 'Edad mínima es 5 años').max(25, 'Edad máxima es 25 años'),
+  nombre: z.string().min(2, 'Nombre debe tener mínimo 2 caracteres').max(50, 'Nombre debe tener máximo 50 caracteres'),
+  apellido: z.string().min(2, 'Apellido debe tener mínimo 2 caracteres').max(50, 'Apellido debe tener máximo 50 caracteres'),
+  edad: z.number().int().min(5, 'Edad mínima es 5 años').max(29, 'Edad máxima es 29 años'),
   genero: z.enum(['masculino', 'femenino'], {
     errorMap: () => ({ message: "Género debe ser 'masculino' o 'femenino'" })
+  }),
+  provincia: z.string().min(1, 'Provincia es obligatoria').max(100, 'Provincia debe tener máximo 100 caracteres'),
+  canton: z.string().min(1, 'Cantón es obligatorio').max(100, 'Cantón debe tener máximo 100 caracteres'),
+  nivelEducativo: z.enum(['ninguno', 'primaria', 'secundaria', 'tecnologico', 'universitario', 'postgrado'], {
+    errorMap: () => ({ message: "Nivel educativo inválido. Valores permitidos: ninguno, primaria, secundaria, tecnologico, universitario, postgrado" })
   }),
   schoolId: z.string().min(1, 'School ID es obligatorio'),
   otraEscuela: z.string().optional()

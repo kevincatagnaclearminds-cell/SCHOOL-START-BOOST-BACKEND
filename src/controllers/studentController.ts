@@ -3,7 +3,7 @@ import { prisma } from '../utils/prisma';
 
 export const createStudent = async (req: Request, res: Response) => {
   try {
-    const { cedula, nombre, apellido, edad, genero, schoolId, otraEscuela } = req.body;
+    const { cedula, nombre, apellido, edad, genero, provincia, canton, nivelEducativo, schoolId, otraEscuela } = req.body;
 
     // Si schoolId no es "otra", validar que la escuela exista
     if (schoolId !== 'otra') {
@@ -43,6 +43,9 @@ export const createStudent = async (req: Request, res: Response) => {
           apellido: existing.apellido,
           edad: existing.edad,
           genero: existing.genero,
+          provincia: existing.provincia,
+          canton: existing.canton,
+          nivelEducativo: existing.nivelEducativo,
           schoolId: existing.schoolId,
           otraEscuela: existing.otraEscuela
         }
@@ -56,6 +59,9 @@ export const createStudent = async (req: Request, res: Response) => {
       apellido,
       edad,
       genero,
+      provincia,
+      canton,
+      nivelEducativo,
       otraEscuela: schoolId === 'otra' ? otraEscuela : null
     };
 
