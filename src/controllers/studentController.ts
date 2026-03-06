@@ -131,16 +131,17 @@ export const getStudentByCedula = async (req: Request, res: Response) => {
   try {
     const { cedula } = req.params;
 
+    // Validar que la cédula tenga 10 dígitos
+    if (!cedula || cedula.length !== 10 || !/^\d+$/.test(cedula)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cédula inválida. Debe tener exactamente 10 dígitos'
+      });
+    }
+
+    // Buscar estudiante - devuelve TODOS los campos
     const student = await prisma.student.findUnique({
-      where: { cedula },
-      include: {
-        school: {
-          select: {
-            id: true,
-            nombre: true
-          }
-        }
-      }
+      where: { cedula }
     });
 
     if (!student) {
