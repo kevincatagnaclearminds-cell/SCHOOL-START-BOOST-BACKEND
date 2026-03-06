@@ -56,5 +56,34 @@ export const completeTrainingSchema = z.object({
   profile: z.string().min(1, 'Perfil es obligatorio')
 });
 
+export const updateStudentSchema = z.object({
+  nombre: z.string().min(2, 'Nombre debe tener mínimo 2 caracteres').max(50, 'Nombre debe tener máximo 50 caracteres').optional(),
+  apellido: z.string().min(2, 'Apellido debe tener mínimo 2 caracteres').max(50, 'Apellido debe tener máximo 50 caracteres').optional(),
+  edad: z.number().int().min(5, 'Edad mínima es 5 años').max(29, 'Edad máxima es 29 años').optional(),
+  genero: z.enum(['masculino', 'femenino'], {
+    errorMap: () => ({ message: "Género debe ser 'masculino' o 'femenino'" })
+  }).optional(),
+  provincia: z.string().min(1, 'Provincia es obligatoria').max(100, 'Provincia debe tener máximo 100 caracteres').optional(),
+  canton: z.string().min(1, 'Cantón es obligatorio').max(100, 'Cantón debe tener máximo 100 caracteres').optional(),
+  nivelEducativo: z.enum(['ninguno', 'primaria', 'secundaria', 'tecnologico', 'universitario', 'postgrado'], {
+    errorMap: () => ({ message: "Nivel educativo inválido. Valores permitidos: ninguno, primaria, secundaria, tecnologico, universitario, postgrado" })
+  }).optional(),
+  schoolId: z.string().optional(),
+  otraEscuela: z.string().optional().nullable()
+}).refine(
+  (data) => {
+    // Si schoolId es "otra", otraEscuela debe tener valor
+    if (data.schoolId === 'otra') {
+      return data.otraEscuela && data.otraEscuela.trim().length > 0;
+    }
+    return true;
+  },
+  {
+    message: 'Debes proporcionar el nombre de la escuela',
+    path: ['otraEscuela']
+  }
+);
+
 export type CreateStudentInput = z.infer<typeof createStudentSchema>;
 export type CompleteTrainingInput = z.infer<typeof completeTrainingSchema>;
+export type UpdateStudentInput = z.infer<typeof updateStudentSchema>;

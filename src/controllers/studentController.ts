@@ -221,3 +221,77 @@ export const completeTraining = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const updateStudentByCedula = async (req: Request, res: Response) => {
+  try {
+    const { cedula } = req.params;
+    const { nombre, apellido, edad, genero, provincia, canton, nivelEducativo, schoolId, otraEscuela } = req.body;
+
+    // Validar formato de cédula
+    if (!cedula || cedula.length !== 10 || !/^\d+$/.test(cedula)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cédula inválida. Debe tener exactamente 10 dígitos'
+      });
+    }
+
+    // Buscar estudiante
+    const existingStudent = await prisma.student.findUnique({
+      where: { cedula }
+    });
+
+    if (!existingStudent) {
+      return res.status(404).json({
+        success: false,
+        error: 'Estudiante no encontrado'
+      });
+    }
+
+    // Preparar datos para actualizar (solo los que vienen en el body)
+    const updateData: any = {};
+
+    if (nombre !== undefined) updateData.nombre = nombre;
+    if (apellido !== undefined) updateData.apellido = apellido;
+    if (edad !== undefined) updateData.edad = edad;
+    if (genero !== undefined) updateData.genero = genero;
+    if (provincia !== undefined) updateData.provincia = provincia;
+    if (canton !== undefined) updateData.canton = canton;
+    if (nivelEducativo !== undefined) updateData.nivelEducativo = nivelEducativo;
+    
+    // Manejar schoolId y otraEscuela
+    if (schoolId !== undefined) {
+      if (schoolId === 'otra') {
+        updateData.schoolId = null;
+        updateData.otraEscuela = otraEscuela || null;
+      } else {
+        updateData.schoolId = schoolId;
+        updateData.otraEscuela = null;
+      }
+    }
+
+    // Actualizar estudiante
+    const updatedStudent = await prisma.student.update({
+      where: { cedula },
+      data: updateData,
+      include: {
+        school: {
+          select: {
+            id: true,
+            nombre: true
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: updatedStudent
+    });
+  } catch (error) {
+    console.error('Error updating student:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al actualizar el estudiante'
+    });
+  }
+};
