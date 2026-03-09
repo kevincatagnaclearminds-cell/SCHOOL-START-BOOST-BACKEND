@@ -5,8 +5,8 @@ export const createStudent = async (req: Request, res: Response) => {
   try {
     const { cedula, nombre, apellido, edad, genero, provincia, canton, nivelEducativo, schoolId, otraEscuela } = req.body;
 
-    // Si schoolId no es "otra" ni null, validar que la escuela exista
-    if (schoolId && schoolId !== 'otra' && schoolId !== null) {
+    // Si schoolId no es "otra", "INDEPENDIENTE" ni null, validar que la escuela exista
+    if (schoolId && schoolId !== 'otra' && schoolId !== 'INDEPENDIENTE' && schoolId !== null) {
       const school = await prisma.school.findUnique({
         where: { id: schoolId }
       });
@@ -65,8 +65,8 @@ export const createStudent = async (req: Request, res: Response) => {
       otraEscuela: schoolId === 'otra' ? otraEscuela : null
     };
 
-    // Solo agregar schoolId si no es "otra" ni null
-    if (schoolId && schoolId !== 'otra' && schoolId !== null) {
+    // Solo agregar schoolId si no es "otra", "INDEPENDIENTE" ni null
+    if (schoolId && schoolId !== 'otra' && schoolId !== 'INDEPENDIENTE' && schoolId !== null) {
       studentData.schoolId = schoolId;
     }
 
@@ -264,6 +264,9 @@ export const updateStudentByCedula = async (req: Request, res: Response) => {
       if (schoolId === 'otra') {
         updateData.schoolId = null;
         updateData.otraEscuela = otraEscuela || null;
+      } else if (schoolId === 'INDEPENDIENTE' || schoolId === null) {
+        updateData.schoolId = null;
+        updateData.otraEscuela = null;
       } else {
         updateData.schoolId = schoolId;
         updateData.otraEscuela = null;
