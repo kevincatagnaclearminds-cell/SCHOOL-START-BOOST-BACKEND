@@ -68,7 +68,7 @@ export const updateStudentSchema = z.object({
   nivelEducativo: z.enum(['ninguno', 'primaria', 'secundaria', 'tecnologico', 'universitario', 'postgrado'], {
     errorMap: () => ({ message: "Nivel educativo inválido. Valores permitidos: ninguno, primaria, secundaria, tecnologico, universitario, postgrado" })
   }).optional(),
-  schoolId: z.string().optional(),
+  schoolId: z.union([z.string(), z.null()]).optional(),
   otraEscuela: z.string().optional().nullable()
 }).refine(
   (data) => {
