@@ -7,8 +7,8 @@ const router = Router();
 
 router.post('/students', validateRequest(createStudentSchema), createStudent);
 router.get('/students', getAllStudents);
-router.get('/students/cedula/:cedula', getStudentByCedula);
-router.put('/students/cedula/:cedula', validateRequest(updateStudentSchema), updateStudentByCedula);
+router.get('/students/:cedula', getStudentByCedula);
+router.put('/students/:cedula', validateRequest(updateStudentSchema), updateStudentByCedula);
 router.post('/students/:id/complete-training', validateRequest(completeTrainingSchema), completeTraining);
 
 export default router;
