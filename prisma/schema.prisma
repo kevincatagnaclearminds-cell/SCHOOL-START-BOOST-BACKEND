@@ -33,6 +33,7 @@ model Student {
   nivelEducativo    String   @map("nivel_educativo")
   schoolId          String?  @map("school_id")
   otraEscuela       String?  @map("otra_escuela")
+  puntaje           Int      @default(0)
   completedTraining Boolean  @default(false) @map("completed_training")
   trainingCount     Int      @default(0) @map("training_count")
   createdAt         DateTime @default(now()) @map("created_at")

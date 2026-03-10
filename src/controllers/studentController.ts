@@ -183,18 +183,20 @@ export const completeTraining = async (req: Request, res: Response) => {
     }
 
     const isFirstTime = !student.completedTraining;
+    const isCompleted = score >= 100; // Completado si puntaje >= 100
 
     // Actualizar estudiante
     const updatedStudent = await prisma.student.update({
       where: { id },
       data: {
-        completedTraining: true,
+        puntaje: score,
+        completedTraining: isCompleted,
         trainingCount: student.trainingCount + 1
       }
     });
 
-    // Solo sumar a la escuela si es la primera vez Y tiene una escuela asociada
-    if (isFirstTime && student.schoolId) {
+    // Solo sumar a la escuela si es la primera vez Y tiene una escuela asociada Y completó
+    if (isFirstTime && student.schoolId && isCompleted) {
       await prisma.school.update({
         where: { id: student.schoolId },
         data: {
@@ -211,7 +213,8 @@ export const completeTraining = async (req: Request, res: Response) => {
         isFirstTime,
         trainingCount: updatedStudent.trainingCount,
         score,
-        profile
+        profile,
+        completed: isCompleted
       }
     });
   } catch (error) {
