@@ -52,7 +52,7 @@ export const createStudentSchema = z.object({
 );
 
 export const completeTrainingSchema = z.object({
-  score: z.number().int().min(0).max(10),
+  score: z.number().int().min(0).max(100),
   profile: z.string().min(1, 'Perfil es obligatorio')
 });
 

@@ -183,7 +183,7 @@ export const completeTraining = async (req: Request, res: Response) => {
     }
 
     const isFirstTime = !student.completedTraining;
-    const isCompleted = score >= 100; // Completado si puntaje >= 100
+    const isCompleted = score >= 70; // Completado si puntaje >= 70%
 
     // Actualizar estudiante
     const updatedStudent = await prisma.student.update({
